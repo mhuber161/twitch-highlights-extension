@@ -1,0 +1,15 @@
+{
+    "name": "Twitch Chat Highlights",
+    "version": "1.0",
+    "description": "Find the best moments from a Twitch VOD!",
+    "permissions": ["activeTab", "declarativeContent", "storage","https://api.twitch.tv/*"],
+    "background": {
+      "scripts": ["background.js"],
+      "persistent": false
+    },
+    "content_scripts": [{
+      "js": ["display-stats.js"],
+      "matches": ["https://*.twitch.tv/videos/*"]
+    }],
+    "manifest_version": 2
+  }
