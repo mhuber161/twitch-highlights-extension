@@ -8,7 +8,7 @@
       "persistent": false
     },
     "content_scripts": [{
-      "js": ["display-stats.js"],
+      "js": ["Chart.bundle.js", "display-stats.js"],
       "matches": ["https://*.twitch.tv/videos/*"]
     }],
     "manifest_version": 2

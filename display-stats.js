@@ -2,7 +2,27 @@
 // stats.innerText = "Hello there!";
 // document.body.appendChild(stats);
 
+function secondsToHms(d) {
+    d = Number(d);
+    var h = Math.floor(d / 3600);
+    var m = Math.floor(d % 3600 / 60);
+    var s = Math.floor(d % 3600 % 60);
+
+    var hDisplay = h > 0 ? h + (h == 1 ? " hour, " : " hours, ") : "";
+    var mDisplay = m > 0 ? m + (m == 1 ? " minute, " : " minutes, ") : "";
+    var sDisplay = s > 0 ? s + (s == 1 ? " second" : " seconds") : "";
+    return hDisplay + mDisplay + sDisplay; 
+}
+
+var canvasContainer = document.createElement("canvasContainer");
+canvasContainer.style.width = '100%';
+canvasContainer.innerHTML = '<canvas id="frequencyChart"></canvas>'
+document.getElementById('root').appendChild(canvasContainer);
+
+
 //TODO: implement first pass filter that filters for spikes in comment frequency, then do in depth analysis on those moments
+
+// import Chart from './Chart.bundle';
 
 var clientId = 'oe92qc609eaxxhoh4h5s06pvz7gd9l';
 
@@ -37,6 +57,9 @@ class Frequency{
     }
 }
 
+var frequencyData = [];
+var timeData = []
+
 var xhr = new XMLHttpRequest();
 var chatMessageArray = [];
 var obj = null;
@@ -46,7 +69,6 @@ var frequencyList = [];
 var time = 5;
 var frequencyValue = 0;
 
-alert("loading");
 
 do {
     if (obj == null){
@@ -61,44 +83,54 @@ do {
     xhr.setRequestHeader("Accept", "application/vnd.twitchtv.v5+json");
 
     xhr.send();
+    console.log("Pulled data from Twitch");
     var result = xhr.responseText;
 
     var obj = JSON.parse(result);
 
     for (var i in obj.comments){
+        // if (time > 300){
+        //     break;
+        // }
         if (obj.comments[i].content_offset_seconds > time){
             frequencyList.push(new Frequency(time,frequencyValue));
+            frequencyData.push(frequencyValue);
+
             frequencyValue = 0;
+
+            timeData.push(secondsToHms(time));
 
             time += 5;
 
             //find most popular words in wordmap and add to highlights map
             //empty out wordsMap
-            var max = 0;
-            var maxIndex = null;
-            for (var word in wordsMap){
-                if (wordsMap[word] > max){
-                    max = wordsMap[word];
-                    maxIndex = word;
-                }
-            }
+            //TODO background processing
+            // var max = 0;
+            // var maxIndex = null;
+            // for (var word in wordsMap){
+            //     if (wordsMap[word] > max){
+            //         max = wordsMap[word];
+            //         maxIndex = word;
+            //     }
+            // }
             
-            highlightList.push(new Highlight(time-10,maxIndex,max));
+            // highlightList.push(new Highlight(time-10,maxIndex,max));
 
-            wordsMap = {};
+            // wordsMap = {};
 
         }
 
         frequencyValue++;
 
-        var wordsArray = (obj.comments[i].message.body).split(" ");
-        wordsArray.forEach(function (key) {
-            if (wordsMap.hasOwnProperty(key)) {
-                wordsMap[key]++;
-            } else {
-                wordsMap[key] = 1;
-            }
-        });
+        //TODO background processing
+        // var wordsArray = (obj.comments[i].message.body).split(" ");
+        // wordsArray.forEach(function (key) {
+        //     if (wordsMap.hasOwnProperty(key)) {
+        //         wordsMap[key]++;
+        //     } else {
+        //         wordsMap[key] = 1;
+        //     }
+        // });
 
         // chatMessageArray.push(new ChatMessage(obj.comments[i].content_offset_seconds, obj.comments[i].message.body));
 
@@ -106,13 +138,42 @@ do {
 
 } while (obj._next != null);
 
-highlightList.sort(function(a,b){
-    return a.popularity - b.popularity;
-})
+var ctx = document.getElementById('frequencyChart').getContext('2d');
 
-for (var i in highlightList){
-    console.log(highlightList[i].text + ", " + highlightList[i].time + ", " + highlightList[i].popularity );
-}
+var frequencyChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: timeData,
+        datasets: [{
+            label: 'Frequency',
+            data: frequencyData
+        }]
+    },
+    options: {
+        animation: {
+            duration: 0, // general animation time
+        },
+        hover: {
+            animationDuration: 0, // duration of animations when hovering an item
+        },
+        responsiveAnimationDuration: 0, // animation duration after a resize
+        elements: {
+            line: {
+                tension: 0, // disables bezier curves
+            }
+        },
+    }
+});
+
+
+// TODO background processing
+// highlightList.sort(function(a,b){
+//     return a.popularity - b.popularity;
+// })
+
+// for (var i in highlightList){
+//     console.log(highlightList[i].text + ", " + highlightList[i].time + ", " + highlightList[i].popularity );
+// }
 
 // alert("video id is " + videoId + ", response is " + obj);
 
