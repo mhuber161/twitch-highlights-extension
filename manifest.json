@@ -2,14 +2,12 @@
     "name": "Twitch Chat Highlights",
     "version": "1.0",
     "description": "Find the best moments from a Twitch VOD!",
-    "permissions": ["activeTab", "declarativeContent", "storage","https://api.twitch.tv/*"],
-    "background": {
-      "scripts": ["background.js"],
-      "persistent": false
-    },
+    "permissions": ["activeTab", "declarativeContent", "unlimitedStorage", "storage"],
     "content_scripts": [{
-      "js": ["Chart.bundle.js", "display-stats.js"],
+      "js": ["dygraph.js", "display-stats.js"],
+      "css": ["dygraph.css"],
+      "run_at": "document_end",
       "matches": ["https://*.twitch.tv/videos/*"]
     }],
-    "manifest_version": 2
+    "manifest_version": 3
   }
