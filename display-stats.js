@@ -6,7 +6,9 @@
 //TODO add button to trigger graph load
 //TODO V2 - sync chat log with remote server to improve initial pull speed
 
-var videoId = (document.URL).split("/")[4];
+var video = (document.URL).split("/")[4];
+var videoId = video.split("?")[0];
+console.log("Video Id: " + videoId);
 var chatlogs = {};
 var g;  //graph element
 class ChatMessage {
@@ -21,6 +23,7 @@ window.addEventListener ("load", loadGraph, false);
 function loadGraph(evt){
     chrome.storage.local.get(['chatlogs'], function(result) {
         console.log('Value currently is ' + result.chatlogs[videoId]);
+        chatlogs = result.chatlogs;
         if(result.chatlogs[videoId] != undefined){
             parseSavedChatLog(result.chatlogs[videoId]);
         }
@@ -186,7 +189,8 @@ function displayChartJSGraph(frequencyData, timeData){
 
 function graphClickCallback(evt, x, points){
     console.log("Graph clicked " + x);
-    var url = "https://www.twitch.tv/videos/" + videoId + "?t=" + x + "s";
+    var seekTime = x - 10;
+    var url = "https://www.twitch.tv/videos/" + videoId + "?t=" + seekTime + "s";
     window.open(url,"_self")
 }
 
