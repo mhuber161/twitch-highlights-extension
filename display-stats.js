@@ -8,6 +8,7 @@
 
 var videoId = (document.URL).split("/")[4];
 var chatlogs = {};
+var g;  //graph element
 class ChatMessage {
     constructor(time, text) {
         this.time = time;
@@ -77,6 +78,11 @@ function displayDyGraph(graphData){
     var scrollArea = document.getElementsByClassName('tw-pd-t-2 tw-pd-x-3')[0]; //.appendChild(canvas);
     scrollArea.insertBefore(graphDiv, scrollArea.childNodes[2]);
 
+    var resetButton = document.createElement('input');
+    resetButton.type = 'button';
+    resetButton.value = "Reset Zoom";
+    scrollArea.insertBefore(resetButton, scrollArea.childNodes[3]);
+    resetButton.addEventListener ("click", unzoomGraph);
 
     g = new Dygraph(
 
@@ -180,14 +186,23 @@ function displayChartJSGraph(frequencyData, timeData){
 
 function graphClickCallback(evt, x, points){
     console.log("Graph clicked " + x);
+    var url = "https://www.twitch.tv/videos/" + videoId + "?t=" + x + "s";
+    window.open(url,"_self")
 }
 
 function formatTimeDisplay(seconds, granularity, opts, graph){
     var date = new Date(null);
-    date.setSeconds(seconds); // specify value for SECONDS here
+    date.setSeconds(seconds); 
     var result = date.toISOString().substr(11, 8);
     return result;
 }
+
+function unzoomGraph() {
+    g.updateOptions({
+      dateWindow: null,
+      valueRange: null
+    });
+  }
 
 function pullChatLog( messageArray, obj){
     var clientId = 'oe92qc609eaxxhoh4h5s06pvz7gd9l';
@@ -232,10 +247,6 @@ function pullChatLog( messageArray, obj){
         }
     };
     xhr.send();
-
-}
-
-function processResponse(){
 
 }
 
