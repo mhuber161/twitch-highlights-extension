@@ -6,11 +6,13 @@
 //TODO add button to trigger graph load
 //TODO V2 - sync chat log with remote server to improve initial pull speed
 
-var video = (document.URL).split("/")[4];
-var videoId = video.split("?")[0];
-console.log("Video Id: " + videoId);
+var videoId;
+var dyGraph = null;
 var chatlogs = {};
-var g;  //graph element
+var graphDiv = null;
+var loadButton = null;
+var resetButton = null;
+
 class ChatMessage {
     constructor(time, text) {
         this.time = time;
@@ -18,9 +20,58 @@ class ChatMessage {
     }
 }
 
-window.addEventListener ("load", loadGraph, false);
+window.addEventListener ("load", insertLoadGraphButton, false);
+
+chrome.runtime.onMessage.addListener(
+    function(request, sender, sendResponse) {
+        if (request.historyChanged == "true"){
+            if (/https:\/\/www\.twitch\.tv\/videos\/[0-9]*.*/.test(document.URL)){
+                resetGraph();    //reset state to before graph loaded
+            }
+        }
+    }
+);
+
+function resetGraph(){
+    video = (document.URL).split("/")[4];
+    videoId = video.split("?")[0];
+    chatlogs = {};
+    if (dyGraph != null){
+        dyGraph.destroy();
+    }
+
+    insertLoadGraphButton();
+}
+
+function insertLoadGraphButton(){
+    if (graphDiv == null){
+        var graphDiv = document.createElement('div');
+        graphDiv.id = 'frequencyChart';
+        graphDiv.style.width = "100%";
+        var scrollArea = document.getElementsByClassName('tw-pd-t-2 tw-pd-x-3')[0]; //.appendChild(canvas);
+        scrollArea.insertBefore(graphDiv, scrollArea.childNodes[2]);
+    }
+
+    if (loadButton == null){
+        var loadButton = document.createElement('input');
+        loadButton.type = 'button';
+        loadButton.value = "Load Chat Graph!";
+        var scrollArea = document.getElementsByClassName('tw-pd-t-2 tw-pd-x-3')[0]; //.appendChild(canvas);
+        scrollArea.insertBefore(loadButton, scrollArea.childNodes[3]);
+        loadButton.addEventListener ("click", loadGraph);
+    }
+    else{
+        //TODO: unhide load button
+    }
+}
+
 
 function loadGraph(evt){
+    //TODO: hide load graph button
+    video = (document.URL).split("/")[4];
+    videoId = video.split("?")[0];
+    console.log("Video Id: " + videoId);
+
     chrome.storage.local.get(['chatlogs'], function(result) {
         console.log('Value currently is ' + result.chatlogs[videoId]);
         chatlogs = result.chatlogs;
@@ -75,19 +126,16 @@ function parseSavedChatLog(chatlog){
 }
 
 function displayDyGraph(graphData){
-    var graphDiv = document.createElement('div');
-    graphDiv.id = 'frequencyChart';
-    graphDiv.style.width = "100%";
-    var scrollArea = document.getElementsByClassName('tw-pd-t-2 tw-pd-x-3')[0]; //.appendChild(canvas);
-    scrollArea.insertBefore(graphDiv, scrollArea.childNodes[2]);
+    if (resetButton == null){
+        var resetButton = document.createElement('input');
+        resetButton.type = 'button';
+        resetButton.value = "Reset Zoom";
+        var scrollArea = document.getElementsByClassName('tw-pd-t-2 tw-pd-x-3')[0]; //.appendChild(canvas);
+        scrollArea.insertBefore(resetButton, scrollArea.childNodes[3]);
+        resetButton.addEventListener ("click", unzoomGraph);
+    }
 
-    var resetButton = document.createElement('input');
-    resetButton.type = 'button';
-    resetButton.value = "Reset Zoom";
-    scrollArea.insertBefore(resetButton, scrollArea.childNodes[3]);
-    resetButton.addEventListener ("click", unzoomGraph);
-
-    g = new Dygraph(
+    dyGraph = new Dygraph(
 
         // containing div
         document.getElementById("frequencyChart"),
@@ -202,7 +250,7 @@ function formatTimeDisplay(seconds, granularity, opts, graph){
 }
 
 function unzoomGraph() {
-    g.updateOptions({
+    dyGraph.updateOptions({
       dateWindow: null,
       valueRange: null
     });
