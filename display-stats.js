@@ -1,10 +1,8 @@
 //TODO gradually display graph as data is pulled from twitch
-//TODO add button to reset zoom instead of double click
-//TODO seek video when point is clicked
 //TODO annotate popular points for quick reference
 //TODO do in depth analysis for emotes - in the background
-//TODO add button to trigger graph load
 //TODO V2 - sync chat log with remote server to improve initial pull speed
+//TODO: Add loading screen for loading graph/pulling from server (merge w/ first TODO)
 
 var videoId;
 var dyGraph = null;
@@ -38,6 +36,8 @@ function resetGraph(){
     chatlogs = {};
     if (dyGraph != null){
         dyGraph.destroy();
+        document.getElementById("frequencyChart").style.visibility = "collapsed";
+        document.getElementById("reset-chat-button").style.visibility = "collapsed";
     }
 
     insertLoadGraphButton();
@@ -45,7 +45,7 @@ function resetGraph(){
 
 function insertLoadGraphButton(){
     if (graphDiv == null){
-        var graphDiv = document.createElement('div');
+        graphDiv = document.createElement('div');
         graphDiv.id = 'frequencyChart';
         graphDiv.style.width = "100%";
         var scrollArea = document.getElementsByClassName('tw-pd-t-2 tw-pd-x-3')[0]; //.appendChild(canvas);
@@ -53,21 +53,23 @@ function insertLoadGraphButton(){
     }
 
     if (loadButton == null){
-        var loadButton = document.createElement('input');
+        loadButton = document.createElement('input');
         loadButton.type = 'button';
         loadButton.value = "Load Chat Graph!";
+        loadButton.id = "load-chat-button";
         var scrollArea = document.getElementsByClassName('tw-pd-t-2 tw-pd-x-3')[0]; //.appendChild(canvas);
         scrollArea.insertBefore(loadButton, scrollArea.childNodes[3]);
         loadButton.addEventListener ("click", loadGraph);
     }
     else{
-        //TODO: unhide load button
+        document.getElementById("load-chat-button").style.visibility = "visible";
     }
 }
 
 
 function loadGraph(evt){
-    //TODO: hide load graph button
+    document.getElementById("load-chat-button").style.visibility = "collapsed";
+    document.getElementById("frequencyChart").style.visibility = "visible";
     video = (document.URL).split("/")[4];
     videoId = video.split("?")[0];
     console.log("Video Id: " + videoId);
@@ -127,12 +129,16 @@ function parseSavedChatLog(chatlog){
 
 function displayDyGraph(graphData){
     if (resetButton == null){
-        var resetButton = document.createElement('input');
+        resetButton = document.createElement('input');
         resetButton.type = 'button';
         resetButton.value = "Reset Zoom";
+        resetButton.id = "reset-chat-button";
         var scrollArea = document.getElementsByClassName('tw-pd-t-2 tw-pd-x-3')[0]; //.appendChild(canvas);
         scrollArea.insertBefore(resetButton, scrollArea.childNodes[3]);
         resetButton.addEventListener ("click", unzoomGraph);
+    }
+    else{
+        document.getElementById("reset-chat-button").style.visibility = "visible";
     }
 
     dyGraph = new Dygraph(
